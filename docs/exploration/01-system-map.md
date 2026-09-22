@@ -277,4 +277,113 @@ So at this stage the Products Service can only read the product catalog. Full CR
 
 ## 5. Research notes
 
-Will be added later
+### 1. What does `docker compose up` do in this project?
+
+`docker compose up -d --build` reads `docker-compose.yml` and `.env`.
+
+It builds the services, creates the Docker network and volume, starts PostgreSQL, then starts the other services.
+
+The migration runner starts when the database is ready, applies the database setup, and then exits.
+
+The first run took much longer because Docker had to download and build everything.
+
+The next runs are faster because Docker can reuse existing images and cache.
+
+---
+
+### 2. How does one container reach another by name?
+
+Inside Docker, containers use service names instead of `localhost`.
+
+For example, the backend services connect to PostgreSQL using:
+
+```text
+database:5432
+```
+
+`database` is the name of the PostgreSQL service in `docker-compose.yml`.
+
+Docker resolves this name automatically.
+
+From the browser I use:
+
+```text
+localhost:8082
+localhost:8000
+localhost:8083
+```
+
+because the browser is outside the Docker network.
+
+So I understood it like this:
+
+```text
+inside Docker -> service name
+from browser -> localhost + published port
+```
+
+---
+
+### 3. What is the difference between a container, image and volume?
+
+An **image** is what Docker uses to create a container.
+
+A **container** is the running application.
+
+A **volume** stores data separately from the container.
+
+PostgreSQL uses the volume:
+
+```text
+postgres_data
+```
+
+If I run:
+
+```text
+docker compose down
+```
+
+the containers stop and are removed, but the database data stays.
+
+If I run:
+
+```text
+docker compose down -v
+```
+
+the volume is also removed, so the stored database data is deleted.
+
+---
+
+### 4. What does the Prisma migration runner do?
+
+The migration runner prepares the database.
+
+It applies the Prisma migrations and adds the sample data.
+
+It is separate from the Products, Users and Orders services.
+
+After it finishes its job, it stops.
+
+That is why this is normal:
+
+```text
+migration-runner   Exited (0)
+```
+
+`0` means it finished successfully.
+
+---
+
+### 5. Why does this system use four languages?
+
+The frontend uses JavaScript.
+
+The backend services use PHP, Python and Java.
+
+The benefit is that different services can use different technologies.
+
+The problem is that the project becomes harder to understand and maintain because there are more languages, frameworks and build tools.
+
+For me, the main idea is that the services can still work together even if they are written in different languages.
