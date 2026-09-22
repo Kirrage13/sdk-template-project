@@ -257,4 +257,24 @@ After checking the project, I understood that this container is supposed to run 
 
 ## 4. Documentation difference
 
-TODO: Will be added later
+In `ARCHITECTURE.md`, the Products Service is described as:
+
+> **Role**: Manages product catalog (CRUD operations).
+
+However, in the current version of the project, the Products Service only has a read-only endpoint:
+
+`products-service/public/index.php:26`
+
+```php
+$app->get('/products', function (Request $request, Response $response, $args) {
+```
+
+There are currently no `POST`, `PUT`, `PATCH` or `DELETE` endpoints for products.
+
+So at this stage the Products Service can only read the product catalog. Full CRUD functionality is not implemented yet.
+
+---
+
+## 5. Research notes
+
+Will be added later
